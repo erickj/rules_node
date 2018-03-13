@@ -130,8 +130,12 @@ yarn_modules = repository_rule(
             single_file = True,
         ),
         # If specififed, augment the PATH environment variable with these
-        # tools during 'yarn install'.  
-        "install_tools": attr.string_list(),
+        # tools during 'yarn install'.
+        "install_tools": attr.string_list(
+            # Yarn 1.5.1 seems to need access to `sh` for some
+            # installs, e.g. webpack@3.4.0
+            default = ["sh"],
+        ),
         "package_json": attr.label(
             mandatory = False,
             allow_files = FileType(["package.json"]),

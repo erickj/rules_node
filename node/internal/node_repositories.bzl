@@ -86,23 +86,23 @@ _node_repository = repository_rule(
   _node_repository_impl,
   attrs = {
     "node_version": attr.string(
-      default = "7.10.1",
+      default = "8.10.0",
     ),
     "linux_sha256": attr.string(
-      default = "7b0e9d1af945671a0365a64ee58a2b0d72b3632a1cebe6b5bd75094b93627bf3",
+      default = "92220638d661a43bd0fee2bf478cb283ead6524f231aabccf14c549ebc2bc338",
     ),
     "darwin_sha256": attr.string(
-      default = "d67d2eb9456aab925416ad58aa18b9680e66a4bcc243a89b22e646f7fffc4ff9",
+      default = "03eac783c88ac5253942504658b02105b8acce5c07ff702f55c2fc47d7798664",
     ),
     "windows_sha256": attr.string(
-      default = "617590f06f9a0266ceecb3fd17120fc2fbf8669980974f339a83f3b56ed05f7b",
+      default = "51873acda1ce02d756a6849cbd630789c8f26e3405a7a8135132ade5c09cfa30",
     ),
   },
 )
 
 
-def node_repositories(yarn_version="v1.0.1",
-                      yarn_sha256="6b00b5e0a7074a512d39d2d91ba6262dde911d452617939ca4be4a700dd77cf1",
+def node_repositories(yarn_version="v1.5.1",
+                      yarn_sha256="cd31657232cf48d57fdbff55f38bfa058d2fb4950450bd34af72dac796af4de1",
                       **kwargs):
 
     native.new_http_archive(

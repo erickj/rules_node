@@ -1,3 +1,5 @@
+TEST_DIRS = $(shell ls tests)
+
 test_helloworld:
 	(cd tests/helloworld && bazel test //...)
 
@@ -26,3 +28,6 @@ test_mocha:
 	(cd tests/mocha && bazel test //...)
 
 test_all: test_helloworld test_lyrics test_express test_namespace test_typescript test_webpack test_polymer-cli test_mocha test_rollup
+
+clean:
+	@$(foreach t,$(TEST_DIRS),(cd tests/$(t); bazel clean);)
