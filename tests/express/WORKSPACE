@@ -12,4 +12,5 @@ yarn_modules(
     package_json = "//:package.json",
     # Allows yarn to unpack the express-session git repo in package.json
     install_tools = ["git"],
+    yarn_lock = "//:yarn.lock",
 )

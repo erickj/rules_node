@@ -43,7 +43,7 @@ def _yarn_modules_impl(ctx):
         sha256 = "472add7ad141c75811f93dca421e2b7456045504afacec814b0565f092156250",
         stripPrefix = "package",
     )
-    
+
     # Copy over or create the package.json file
     if ctx.attr.package_json:
         package_json_file = ctx.path(ctx.attr.package_json)
@@ -51,7 +51,6 @@ def _yarn_modules_impl(ctx):
     else:
         ctx.file("package.json", _create_package_json_content(ctx).to_json())
 
-        
     # Copy the parse_yarn_lock script and yarn.js over here.
     execute(ctx, ["cp", parse_yarn_lock_js, "internal/parse_yarn_lock.js"])
     execute(ctx, ["cp", clean_node_modules_js, "internal/clean_node_modules.js"])
@@ -64,16 +63,30 @@ def _yarn_modules_impl(ctx):
             fail("Required install tool '%s' is not in the PATH" % tool, "install_tools")
         install_path.append(tool_path.dirname)
     install_path.append("$PATH")
-    
+
+    install_cmd = [node, yarn_js, "install"]
+    if ctx.attr.yarn_lock:
+        ctx.symlink(ctx.attr.yarn_lock, ctx.path("yarn.lock"))
+        # Throws an error if yarn.lock is out of sync with
+        # package.json. No new yarn.lock file will be generated with
+        # --frozen-lock.
+        # See more comments re: --frozen-lockfile here:
+        # https://github.com/yarnpkg/website/issues/700#issuecomment-340993837
+        install_cmd.append("--frozen-lockfile")
+    else:
+        print("yarn_lock attr not provided to rule '%s', " % ctx.attr.name,
+              "unable to guarantee reproducible builds.",
+              "Copy the generated lockfile from %s and commit to version control" % ctx.path("yarn.lock"))
+
     # Build node_modules via 'yarn install'
-    execute(ctx, [node, yarn_js, "install"], quiet = True, environment = {
+    execute(ctx, install_cmd, quiet = True, environment = {
         "PATH": ":".join(install_path),
     })
 
     # Sadly, pre-existing BUILD.bazel files located in npm modules can
     # screw up package boudaries.  Remove these.
     execute(ctx, [node, "internal/clean_node_modules.js"], quiet = True)
-    
+
     # Run the script and save the stdout to our BUILD file(s)
     parse_args = ["--resolve=%s:%s" % (k, v) for k, v in ctx.attr.resolutions.items()]
     result = execute(ctx, [node, "internal/parse_yarn_lock.js"] + parse_args, quiet = True)
@@ -128,6 +141,13 @@ yarn_modules = repository_rule(
         "_yarn_js": attr.label(
             default = Label("@yarn//:bin/yarn.js"),
             single_file = True,
+        ),
+        # If specified, symlinks the provided file to yarn.lock in the
+        # yarn_modules repository and runs yarn install with the
+        # --frozen-lockfile flag.
+        "yarn_lock": attr.label(
+            allow_single_file = True,
+            mandatory = False,
         ),
         # If specififed, augment the PATH environment variable with these
         # tools during 'yarn install'.  
